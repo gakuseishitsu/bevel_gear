@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import CubicSpline
+
 
 '''
 input valiables of bevel gear
@@ -182,6 +185,8 @@ for index_theta, theta_n in enumerate(theta):
 X_neu_psi: calculate the generating lines from the meshing conditions of gears
 '''
 X_neu_psi = np.zeros((resolution_neu, resolution_psi, vector_dimention))
+Theta_neu_psi = np.zeros((resolution_neu, resolution_psi, 1))
+
 for index_psi, psi_n in enumerate(psi):
     for index_neu, neu_n in enumerate(neu):
         for index_theta, theta_n in enumerate(theta):
@@ -198,7 +203,8 @@ for index_psi, psi_n in enumerate(psi):
                 interpolated_vector = point1 + (abs(dot_product1)/(abs(dot_product1) + abs(dot_product2))) * (point2 - point1)
                 X_neu_psi[index_neu][index_psi] = interpolated_vector
                 interpolated_theta = index_theta + (abs(dot_product1)/(abs(dot_product1) + abs(dot_product2))) * (1.0)
-                print(index_psi, ',', index_neu, ',', interpolated_theta)
+                Theta_neu_psi[index_neu][index_psi] = interpolated_theta
+                #print(index_psi, ',', index_neu, ',', interpolated_theta)
                 break
 
 '''
@@ -207,5 +213,89 @@ X_gear_neu_psi = Calculation of gear tooth surfaces through coordinate transform
 X_gear_neu_psi = np.zeros((resolution_neu, resolution_psi, vector_dimention))
 for index_psi, psi_n in enumerate(psi):
     for index_neu, neu_n in enumerate(neu):
-        if X_neu_psi[index_neu][index_psi] is not None:
-            break
+        if Theta_neu_psi[index_neu][index_psi] > 0:
+            z_axis_rotation = -1.0 * psi_n / np.sin(np.radians(delta_g0))
+            C = np.array([ # cordinate transfomation matrix: Z axis rotation
+                [np.cos(np.radians(z_axis_rotation)), -1.0 * np.sin(np.radians(z_axis_rotation)), 0],
+                [np.sin(np.radians(z_axis_rotation)), np.cos(np.radians(z_axis_rotation)), 0],
+                [0, 0, 1.0]
+            ])
+            C_inv = np.linalg.inv(C)
+            x_axis_rotation = 90.0 + delta_g0
+            A = np.array([ # cordinate transfomation matrix: X axis rotation
+                [1.0, 0, 0],
+                [0, np.cos(np.radians(x_axis_rotation)), -1.0 * np.sin(np.radians(x_axis_rotation))],
+                [0, np.sin(np.radians(x_axis_rotation)), np.cos(np.radians(x_axis_rotation))]
+            ])
+            A_inv = np.linalg.inv(A)
+            X_gear_neu_psi[index_neu][index_psi] = np.matmul(C_inv, np.matmul(A_inv, X_neu_psi[index_neu][index_psi])) 
+
+'''
+#Plot X_gear_neu_psi
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+for index_psi, psi_n in enumerate(psi):
+    for index_neu, neu_n in enumerate(neu):
+        if Theta_neu_psi[index_neu][index_psi] > 0:
+            ax.scatter(X_gear_neu_psi[index_neu][index_psi][0], X_gear_neu_psi[index_neu][index_psi][1], X_gear_neu_psi[index_neu][index_psi][2], c='b', marker='o')
+
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
+ax.grid(True)
+plt.show()
+'''
+
+'''
+スプライン補間してきれいな点群にそろえる
+目標： X_gear_neu_psiからgear_surface[u][v][vectors] を得ること
+ - X_gear_neu_psi: ギア座標系での歯面座標
+ - u: 歯たけ(profile)方向の座標, 0(根本)~1(歯先), resolutionと同じ分割量
+ - v: 歯すじ(flank)方向の座標, 0(外側)~1(内側), resolutionと同じ分割量
+'''
+gear_surface = np.zeros((resolution_theta, resolution_neu, vector_dimention))
+
+for index_neu, neu_n in enumerate(neu):
+    thetas = np.empty(0, dtype=float)
+    vectors = np.empty((0, 3), dtype=float)    
+    for index_psi, psi_n in enumerate(psi):
+        if Theta_neu_psi[index_neu][index_psi] > 0:
+            thetas = np.append(thetas, Theta_neu_psi[index_neu][index_psi])
+            #vectors = np.append(vectors, X_neu_psi[index_neu][index_psi], axis=0)
+            vectors = np.append(vectors, np.array([X_gear_neu_psi[index_neu][index_psi]]), axis=0)
+
+    #print(vectors)
+    #print(thetas)
+
+    '''
+    thetaは昇順でなければCubicSplineが使えないため整列させる
+    '''
+    thetas = np.flipud(thetas)
+    vectors = np.flipud(vectors)
+
+    spline_x = CubicSpline(thetas, vectors[:,0], bc_type='natural')
+    spline_y = CubicSpline(thetas, vectors[:,1], bc_type='natural')
+    spline_z = CubicSpline(thetas, vectors[:,2], bc_type='natural')
+
+    u = np.linspace(0.0, 1.0, resolution_theta)
+    v = np.linspace(0.0, 1.0, resolution_neu)
+    for index_u, u_n in enumerate(u):
+        gear_surface[index_u][index_neu] = np.array([spline_x(u_n), spline_y(u_n), spline_z(u_n)])
+
+'''
+#plot gear_surface
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+for index_u, u_n in enumerate(u):
+    for index_v, v_n in enumerate(v):
+        ax.scatter(gear_surface[index_u][index_v][0], gear_surface[index_u][index_v][1], gear_surface[index_u][index_v][2], c='b', marker='o')
+
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
+ax.grid(True)
+plt.show()
+'''
+
+
