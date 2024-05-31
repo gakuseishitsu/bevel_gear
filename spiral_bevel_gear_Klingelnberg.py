@@ -237,7 +237,8 @@ ax = fig.add_subplot(111, projection='3d')
 for index_psi, psi_n in enumerate(psi):
     for index_neu, neu_n in enumerate(neu):
         if Theta_neu_psi[index_neu][index_psi] > 0:
-            ax.scatter(X_gear_neu_psi[index_neu][index_psi][0], X_gear_neu_psi[index_neu][index_psi][1], X_gear_neu_psi[index_neu][index_psi][2], c='b', marker='o')
+            color_psi = np.array([index_psi/resolution_psi, index_psi/resolution_psi, 0.5]) # RGB (0-1, 0-1, 0-1)
+            ax.scatter(X_gear_neu_psi[index_neu][index_psi][0], X_gear_neu_psi[index_neu][index_psi][1], X_gear_neu_psi[index_neu][index_psi][2], c=color_psi, marker='o')
 
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
@@ -257,45 +258,39 @@ gear_surface = np.zeros((resolution_theta, resolution_neu, vector_dimention))
 
 for index_neu, neu_n in enumerate(neu):
     thetas = np.empty(0, dtype=float)
-    vectors = np.empty((0, 3), dtype=float)    
+    points = np.empty((0, 3), dtype=float)    
     for index_psi, psi_n in enumerate(psi):
         if Theta_neu_psi[index_neu][index_psi] > 0:
             thetas = np.append(thetas, Theta_neu_psi[index_neu][index_psi])
-            #vectors = np.append(vectors, X_neu_psi[index_neu][index_psi], axis=0)
-            vectors = np.append(vectors, np.array([X_gear_neu_psi[index_neu][index_psi]]), axis=0)
+            points = np.append(points, np.array([X_gear_neu_psi[index_neu][index_psi]]), axis=0)
 
-    #print(vectors)
-    #print(thetas)
+    thetas = np.flipud(thetas) # theta must be in ascending order.
+    points = np.flipud(points) # theta must be in ascending order.
 
-    '''
-    thetaは昇順でなければCubicSplineが使えないため整列させる
-    '''
-    thetas = np.flipud(thetas)
-    vectors = np.flipud(vectors)
+    spline_x = CubicSpline(thetas, points[:,0]) # bc_type='natural'
+    spline_y = CubicSpline(thetas, points[:,1])
+    spline_z = CubicSpline(thetas, points[:,2])
 
-    spline_x = CubicSpline(thetas, vectors[:,0], bc_type='natural')
-    spline_y = CubicSpline(thetas, vectors[:,1], bc_type='natural')
-    spline_z = CubicSpline(thetas, vectors[:,2], bc_type='natural')
+    for index_theta, theta_n in enumerate(theta):
+        gear_surface[index_theta][index_neu] = np.array([spline_x(index_theta), spline_y(index_theta), spline_z(index_theta)])
 
-    u = np.linspace(0.0, 1.0, resolution_theta)
-    v = np.linspace(0.0, 1.0, resolution_neu)
-    for index_u, u_n in enumerate(u):
-        gear_surface[index_u][index_neu] = np.array([spline_x(u_n), spline_y(u_n), spline_z(u_n)])
 
 '''
 #plot gear_surface
-
+'''
+u = np.linspace(0.0, 1.0, resolution_theta)
+v = np.linspace(0.0, 1.0, resolution_neu)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 for index_u, u_n in enumerate(u):
     for index_v, v_n in enumerate(v):
-        ax.scatter(gear_surface[index_u][index_v][0], gear_surface[index_u][index_v][1], gear_surface[index_u][index_v][2], c='b', marker='o')
+        ax.scatter(gear_surface[index_u][index_v][0], gear_surface[index_u][index_v][1], gear_surface[index_u][index_v][2], c='b', marker='o', s=2)
 
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
 ax.set_zlabel('Z Label')
 ax.grid(True)
 plt.show()
-'''
+
 
 
