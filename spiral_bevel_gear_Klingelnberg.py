@@ -16,9 +16,10 @@ B = 185 # mm /Face width
 rc = 450 # mm / cutter radious
 alpha = 20 # deg / pressure angle
 beta = 32 # deg / spral angle
-Exb = 4.5 # mm / radious difference
 Z0 = 5 # num of thread of cutter
-module = 24.799
+module = 33.75#24.799
+#Exb = 4.5 # mm / radious difference
+Exb = 33.75
 
 '''
 input valiables for computing
@@ -98,7 +99,7 @@ while True:
 
 #print('neu_range_pos: ', neu_range_pos, ', Ri: ', Ri, 'Rm-0.5B: ', Rm-0.5*B)
 #print('neu_range_neg: ', neu_range_neg, ', Re: ', Re, 'Rm+0.5B: ', Rm+0.5*B)
-neu = np.linspace(neu_range_neg, neu_range_pos, resolution_neu) # deg
+neu = np.linspace(neu_range_neg-1, neu_range_pos+1, resolution_neu) # deg
 
 '''
 X_neu_theta: Coordinate values of the imaginary crown gear tooth surface point cloud
@@ -106,12 +107,19 @@ X_neu_theta: Coordinate values of the imaginary crown gear tooth surface point c
 theta = np.linspace(-1.0 * (1.25 * module)/(np.cos(np.radians(alpha))), (1.0 * module)/(np.cos(np.radians(alpha))), resolution_theta) # mm
 psi = np.linspace(-15, 15, resolution_psi) # deg
 
-X_neu_theta = np.zeros((resolution_neu, resolution_theta, vector_dimention))
+X_neu_theta = np.zeros((resolution_neu, resolution_theta, vector_dimention)) # inner side of cutter
+Xdash_neu_theta = np.zeros((resolution_neu, resolution_theta, vector_dimention)) # outer side of cutter
+
 for index_theta, theta_n in enumerate(theta):
     for index_neu, neu_n in enumerate(neu):
         Xc_theta = np.array([
             theta_n * 0, 
             theta_n * np.sin(np.radians(alpha)) + rc, 
+            theta_n * np.cos(np.radians(alpha))
+        ])
+        Xcdash_theta = np.array([
+            theta_n * 0, 
+            theta_n * -1 * np.sin(np.radians(alpha)) + rc + Exb, 
             theta_n * np.cos(np.radians(alpha))
         ])
         phi_neu = Md / r * neu_n + (90.0 - beta)
@@ -126,6 +134,7 @@ for index_theta, theta_n in enumerate(theta):
             neu_n * 0
         ])
         X_neu_theta[index_neu][index_theta] = np.matmul(C_phi, Xc_theta) + D_neu
+        Xdash_neu_theta[index_neu][index_theta] = np.matmul(C_phi, Xcdash_theta) + D_neu
         #print(X_neu_theta[index_neu][index_theta][0], ', ', X_neu_theta[index_neu][index_theta][1], ', ', X_neu_theta[index_neu][index_theta][2])
 
 '''
@@ -157,6 +166,7 @@ def compute_normals(X):
     return normals
 
 N_neu_theta = compute_normals(X_neu_theta)
+Ndash_neu_theta = compute_normals(Xdash_neu_theta)
 
 '''
 X_neu_theta_psi: imaginary crown gear coordinates in absolute coordinate system
@@ -164,6 +174,10 @@ X_neu_theta_psi: imaginary crown gear coordinates in absolute coordinate system
 X_neu_theta_psi = np.zeros((resolution_neu, resolution_theta, resolution_psi, vector_dimention))
 N_neu_theta_psi = np.zeros((resolution_neu, resolution_theta, resolution_psi, vector_dimention))
 W_neu_theta_psi = np.zeros((resolution_neu, resolution_theta, resolution_psi, vector_dimention))
+
+Xdash_neu_theta_psi = np.zeros((resolution_neu, resolution_theta, resolution_psi, vector_dimention))
+Ndash_neu_theta_psi = np.zeros((resolution_neu, resolution_theta, resolution_psi, vector_dimention))
+Wdash_neu_theta_psi = np.zeros((resolution_neu, resolution_theta, resolution_psi, vector_dimention))
 
 for index_theta, theta_n in enumerate(theta):
     for index_neu, neu_n in enumerate(neu):
@@ -173,13 +187,16 @@ for index_theta, theta_n in enumerate(theta):
                 [np.sin(np.radians(psi_n)), np.cos(np.radians(psi_n)), 0],
                 [0, 0, 1.0]
             ])
+            relative_ang_velocity = np.array([ 0, -1.0 / np.tan(np.radians(delta_g0)), 0 ])
+
             X_neu_theta_psi[index_neu][index_theta][index_psi] = np.matmul(C_phi, X_neu_theta[index_neu][index_theta])
             N_neu_theta_psi[index_neu][index_theta][index_psi] = np.matmul(C_phi, N_neu_theta[index_neu][index_theta])
-
-            relative_ang_velocity = np.array([
-                0, -1.0 / np.tan(np.radians(delta_g0)), 0
-            ])
             W_neu_theta_psi[index_neu][index_theta][index_psi] = np.cross(relative_ang_velocity, X_neu_theta_psi[index_neu][index_theta][index_psi])
+
+            Xdash_neu_theta_psi[index_neu][index_theta][index_psi] = np.matmul(C_phi, Xdash_neu_theta[index_neu][index_theta])
+            Ndash_neu_theta_psi[index_neu][index_theta][index_psi] = np.matmul(C_phi, Ndash_neu_theta[index_neu][index_theta])
+            Wdash_neu_theta_psi[index_neu][index_theta][index_psi] = np.cross(relative_ang_velocity, Xdash_neu_theta_psi[index_neu][index_theta][index_psi])
+
 
 '''
 X_neu_psi: calculate the generating lines from the meshing conditions of gears
@@ -207,6 +224,29 @@ for index_psi, psi_n in enumerate(psi):
                 #print(index_psi, ',', index_neu, ',', interpolated_theta)
                 break
 
+Xdash_neu_psi = np.zeros((resolution_neu, resolution_psi, vector_dimention))
+Theta_dash_neu_psi = np.zeros((resolution_neu, resolution_psi, 1))
+
+for index_psi, psi_n in enumerate(psi):
+    for index_neu, neu_n in enumerate(neu):
+        for index_theta, theta_n in enumerate(theta):
+
+            if index_theta == resolution_theta -1:
+                break # skip the last loop to calculate diff of elements
+
+            dot_product1 = np.dot(Ndash_neu_theta_psi[index_neu][index_theta][index_psi], Wdash_neu_theta_psi[index_neu][index_theta][index_psi])
+            dot_product2 = np.dot(Ndash_neu_theta_psi[index_neu][index_theta+1][index_psi], Wdash_neu_theta_psi[index_neu][index_theta+1][index_psi])
+
+            if dot_product1 * dot_product2 <= 0: # if cross the zero, calculate the interpolation
+                point1 = Xdash_neu_theta_psi[index_neu][index_theta][index_psi]
+                point2 = Xdash_neu_theta_psi[index_neu][index_theta+1][index_psi]
+                interpolated_vector = point1 + (abs(dot_product1)/(abs(dot_product1) + abs(dot_product2))) * (point2 - point1)
+                Xdash_neu_psi[index_neu][index_psi] = interpolated_vector
+                interpolated_theta = index_theta + (abs(dot_product1)/(abs(dot_product1) + abs(dot_product2))) * (1.0)
+                Theta_dash_neu_psi[index_neu][index_psi] = interpolated_theta
+                #print(index_psi, ',', index_neu, ',', interpolated_theta)
+                break
+
 '''
 X_gear_neu_psi = Calculation of gear tooth surfaces through coordinate transformation of generating lines
 '''
@@ -229,6 +269,26 @@ for index_psi, psi_n in enumerate(psi):
             ])
             A_inv = np.linalg.inv(A)
             X_gear_neu_psi[index_neu][index_psi] = np.matmul(C_inv, np.matmul(A_inv, X_neu_psi[index_neu][index_psi])) 
+
+Xdash_gear_neu_psi = np.zeros((resolution_neu, resolution_psi, vector_dimention))
+for index_psi, psi_n in enumerate(psi):
+    for index_neu, neu_n in enumerate(neu):
+        if Theta_dash_neu_psi[index_neu][index_psi] > 0:
+            z_axis_rotation = -1.0 * psi_n / np.sin(np.radians(delta_g0))
+            C = np.array([ # cordinate transfomation matrix: Z axis rotation
+                [np.cos(np.radians(z_axis_rotation)), -1.0 * np.sin(np.radians(z_axis_rotation)), 0],
+                [np.sin(np.radians(z_axis_rotation)), np.cos(np.radians(z_axis_rotation)), 0],
+                [0, 0, 1.0]
+            ])
+            C_inv = np.linalg.inv(C)
+            x_axis_rotation = 90.0 + delta_g0
+            A = np.array([ # cordinate transfomation matrix: X axis rotation
+                [1.0, 0, 0],
+                [0, np.cos(np.radians(x_axis_rotation)), -1.0 * np.sin(np.radians(x_axis_rotation))],
+                [0, np.sin(np.radians(x_axis_rotation)), np.cos(np.radians(x_axis_rotation))]
+            ])
+            A_inv = np.linalg.inv(A)
+            Xdash_gear_neu_psi[index_neu][index_psi] = np.matmul(C_inv, np.matmul(A_inv, Xdash_neu_psi[index_neu][index_psi])) 
 
 '''
 #Plot X_gear_neu_psi
@@ -274,6 +334,24 @@ for index_neu, neu_n in enumerate(neu):
     for index_theta, theta_n in enumerate(theta):
         gear_surface[index_theta][index_neu] = np.array([spline_x(index_theta), spline_y(index_theta), spline_z(index_theta)])
 
+gear_dash_surface = np.zeros((resolution_theta, resolution_neu, vector_dimention))
+for index_neu, neu_n in enumerate(neu):
+    thetas = np.empty(0, dtype=float)
+    points = np.empty((0, 3), dtype=float)    
+    for index_psi, psi_n in enumerate(psi):
+        if Theta_dash_neu_psi[index_neu][index_psi] > 0:
+            thetas = np.append(thetas, Theta_dash_neu_psi[index_neu][index_psi])
+            points = np.append(points, np.array([Xdash_gear_neu_psi[index_neu][index_psi]]), axis=0)
+
+    #thetas = np.flipud(thetas) # theta must be in ascending order.
+    #points = np.flipud(points) # theta must be in ascending order.
+
+    spline_x = CubicSpline(thetas, points[:,0]) # bc_type='natural'
+    spline_y = CubicSpline(thetas, points[:,1])
+    spline_z = CubicSpline(thetas, points[:,2])
+
+    for index_theta, theta_n in enumerate(theta):
+        gear_dash_surface[index_theta][index_neu] = np.array([spline_x(index_theta), spline_y(index_theta), spline_z(index_theta)])
 
 '''
 #plot gear_surface
@@ -285,6 +363,7 @@ ax = fig.add_subplot(111, projection='3d')
 for index_u, u_n in enumerate(u):
     for index_v, v_n in enumerate(v):
         ax.scatter(gear_surface[index_u][index_v][0], gear_surface[index_u][index_v][1], gear_surface[index_u][index_v][2], c='b', marker='o', s=2)
+        ax.scatter(gear_dash_surface[index_u][index_v][0], gear_dash_surface[index_u][index_v][1], gear_dash_surface[index_u][index_v][2], c='b', marker='o', s=2)
 
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
