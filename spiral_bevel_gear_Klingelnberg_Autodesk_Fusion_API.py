@@ -19,9 +19,9 @@ def run(context):
         alpha = 20 # deg / pressure angle
         beta = 32 # deg / spral angle
         Z0 = 5 # num of thread of cutter
-        module = 33.75#24.799
+        module = 24.799
         #Exb = 4.5 # mm / radious difference
-        Exb = 33.75
+        #Exb = module*np.pi/2
 
         '''
         input valiables for computing
@@ -37,12 +37,13 @@ def run(context):
         i = Zg / Zp # Reduction ratio
         delta_g0 = np.degrees(np.arctan2(np.sin(np.radians(Sigma)), 1/i + np.cos(np.radians(Sigma)))) # deg / angle of gear
         delta_p0 = Sigma - delta_g0 # deg / angle of pinion
-        Rm = PCDg / (2 * np.sin(np.radians(delta_g0))) # mm / mean radious of Imaginary crown gear
+        Rm = PCDg / (2 * np.sin(np.radians(delta_g0))) - B/2 # mm / mean radious of Imaginary crown gear
         Zc = Zg / np.sin(np.radians(delta_g0)) # num of tooth Imaginary crown gear
         Md = np.sqrt(np.power(Rm, 2) + np.power(rc, 2) - 2*Rm*rc*np.cos(np.radians(90.0-beta))) # mm / machine distance
         q = Md / (1 + Z0/Zc) # mm
         r = Md - q # mm
         neu_Rm = np.degrees(np.arccos((np.power(Md, 2) + np.power(Rm, 2) - np.power(rc, 2))/(2*Md*Rm))) # deg / initial angle of neu
+        Exb = (Rm * np.pi * np.cos(np.radians(beta))) / Zc 
 
         '''
         decide a range of neu
@@ -92,8 +93,8 @@ def run(context):
         '''
         X_neu_theta: Coordinate values of the imaginary crown gear tooth surface point cloud
         '''
-        theta = np.linspace(-1.0 * (1.25 * module)/(np.cos(np.radians(alpha))), (1.0 * module)/(np.cos(np.radians(alpha))), resolution_theta) # mm
-        psi = np.linspace(-15, 15, resolution_psi) # deg
+        theta = np.linspace(-1.0 * (1.25 * 33.75)/(np.cos(np.radians(alpha))), (1.25 * 33.75)/(np.cos(np.radians(alpha))), resolution_theta) # mm
+        psi = np.linspace(-20, 20, resolution_psi) # deg
 
         X_neu_theta = np.zeros((resolution_neu, resolution_theta, vector_dimention)) # inner side of cutter
         Xdash_neu_theta = np.zeros((resolution_neu, resolution_theta, vector_dimention)) # outer side of cutter

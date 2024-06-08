@@ -17,8 +17,7 @@ rc = 450 # mm / cutter radious
 alpha = 20 # deg / pressure angle
 beta = 32 # deg / spral angle
 Z0 = 5 # num of thread of cutter
-module = 33.75#24.799
-#Exb = 4.5 # mm / radious difference
+module = 33.75
 Exb = 33.75
 
 '''
@@ -35,7 +34,7 @@ caliculated valiables of bevel gear
 i = Zg / Zp # Reduction ratio
 delta_g0 = np.degrees(np.arctan2(np.sin(np.radians(Sigma)), 1/i + np.cos(np.radians(Sigma)))) # deg / angle of gear
 delta_p0 = Sigma - delta_g0 # deg / angle of pinion
-Rm = PCDg / (2 * np.sin(np.radians(delta_g0))) # mm / mean radious of Imaginary crown gear
+Rm = PCDg / (2 * np.sin(np.radians(delta_g0))) - B/2 # mm / mean radious of Imaginary crown gear
 Zc = Zg / np.sin(np.radians(delta_g0)) # num of tooth Imaginary crown gear
 Md = np.sqrt(np.power(Rm, 2) + np.power(rc, 2) - 2*Rm*rc*np.cos(np.radians(90.0-beta))) # mm / machine distance
 q = Md / (1 + Z0/Zc) # mm
@@ -356,6 +355,7 @@ for index_neu, neu_n in enumerate(neu):
 '''
 #plot gear_surface
 '''
+
 u = np.linspace(0.0, 1.0, resolution_theta)
 v = np.linspace(0.0, 1.0, resolution_neu)
 fig = plt.figure()
