@@ -19,14 +19,20 @@
 上記の図から以下の関係式が成り立つ.
 
 $$
-\tan \phi = \frac{\overline{MP}}{\overline{OM}} = \frac{\widehat{MQ}}{r_b} = \frac{r_b(\phi+\theta)}{r_b} 
-\tag{EQ1}$$
+tan \phi = \frac{\overline{MP}}{\overline{OM}} = \frac{\widehat{MQ}}{r_b} = \frac{r_b(\phi+\theta)}{r_b} 
+$$
+<div style="text-align: right;">
+(EQ1)
+</div>
 
 EQ1を式変形して以下が求まる.
 
 $$
-\theta = \tan {\phi} - \phi \tag{EQ2}
+\theta = \tan {\phi} - \phi
 $$
+<div style="text-align: right;">
+(EQ2)
+</div>
 
 EQ2が基本的な平面インボリュートの方程式. 
 * $\theta$ は極角度(polar angle)と呼ばれる. 
