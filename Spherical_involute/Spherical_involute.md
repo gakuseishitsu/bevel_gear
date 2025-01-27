@@ -3,11 +3,12 @@
 ## 参考URL
  * <a id="ref2"></a>Computerized Design of Straight Bevel Gears with Optimized Profiles for Forging, Molding, or 3D Printing [URL](https://thermalprocessing.com/computerized-design-of-straight-bevel-gears-with-optimized-profiles-for-forging-molding-or-3d-printing/)
 
-## 序章
-* 球面インボリュートの歯車は鍛造や3Dプリントによって製造されるだろう。
-* 球面インボリュートの数式は2種類の方法によって求められる
+## はじめに
+* 参考URLを和訳して球面インボリュートベベルギアの3Dモデルを作りたい
+* 球面インボリュートの数式は2種類の方法によって求められることが書いてある
   * 球面三角法 (Spherical trigonometry) による直接定義法(direct definition)による求め方
   * 座標変換による間接定義法(indirect definition)による求め方
+* 以下では両方の導出方法を記載する.  
 
 ## Direct Definition
 
@@ -47,68 +48,101 @@ EQ2が基本的な平面インボリュートの方程式.
 * $r_b$ が基礎円半径
 
 $$
-\widehat{MP} = r_0 \varphi = \widehat{MQ} = r_b(\phi + \theta) = r_0 \varepsilon \sin \gamma_b \tag{EQ3}
+\widehat{MP} = r_0 \varphi = \widehat{MQ} = r_b(\phi + \theta) = r_0 \varepsilon \sin \gamma_b
 $$
+<div style="text-align: right;">
+(EQ3)
+</div>
 
 EQ3を式変形してEQ4を得る
 
 $$
-\varphi = \varepsilon \sin \gamma_b \tag{EQ4}
+\varphi = \varepsilon \sin \gamma_b
 $$
+<div style="text-align: right;">
+(EQ4)
+</div>
 
 EQ4を $\theta$ について解きEQ5を得る
 
 $$
-\theta = \frac{\varphi}{\sin \gamma_b} - \phi  \tag{EQ5}
+\theta = \frac{\varphi}{\sin \gamma_b} - \phi 
 $$
+<div style="text-align: right;">
+(EQ5)
+</div>
 
 EQ5が基本的な球面インボリュートの式となる.
 △OMPに注目すると球面三角法の余弦定理より以下EQ6,7 を得る
 (導出: https://hooktail.sub.jp/vectoranalysis/SphereTriangle/)
 
 $$
-\cos \gamma = \cos \varphi \cos \gamma_b + \sin \varphi \sin \gamma_b \cos 90 \degree = \cos \varphi \cos \gamma_b  \tag{EQ6}
+\cos \gamma = \cos \varphi \cos \gamma_b + \sin \varphi \sin \gamma_b \cos 90 \degree = \cos \varphi \cos \gamma_b 
 $$
+<div style="text-align: right;">
+(EQ6)
+</div>
 
 $$
-\cos \varphi = \cos \gamma_b \cos \gamma + \sin \gamma_b \sin \gamma \cos \phi   \tag{EQ7}
+\cos \varphi = \cos \gamma_b \cos \gamma + \sin \gamma_b \sin \gamma \cos \phi 
 $$
+<div style="text-align: right;">
+(EQ7)
+</div>
 
 また球面三角法の正弦定理より以下EQ8を得る
 
 $$
-\frac{\sin \varphi}{\sin \phi} = \frac{\sin \gamma}{\sin 90 \degree} = \frac{\sin \gamma_b}{\sin \nu}  \tag{EQ8}
+\frac{\sin \varphi}{\sin \phi} = \frac{\sin \gamma}{\sin 90 \degree} = \frac{\sin \gamma_b}{\sin \nu} 
 $$
+<div style="text-align: right;">
+(EQ8)
+</div>
 
 EQ8をγについて解いてEQ9を得る
 
 $$
-\sin \gamma = \frac{\sin \varphi}{\sin \phi}  \tag{EQ9}
+\sin \gamma = \frac{\sin \varphi}{\sin \phi}
 $$
+<div style="text-align: right;">
+(EQ9)
+</div>
 
 EQ6とEQ9をEQ7代入してcosφについてEQ10を得る.
 
 $$
-\cos \varphi = \cos \varphi {\cos \gamma_b}^2  + \frac{\sin \gamma_b \sin \varphi}{\tan \phi}  \tag{EQ10}
+\cos \varphi = \cos \varphi {\cos \gamma_b}^2  + \frac{\sin \gamma_b \sin \varphi}{\tan \phi} 
 $$
+<div style="text-align: right;">
+(EQ10)
+</div>
 
 EQ10をφについて解くとEQ11を得る.
 
 $$
-\tan \varphi =  \sin \gamma_b \tan \phi \tag{EQ11}
+\tan \varphi =  \sin \gamma_b \tan \phi
 $$
+<div style="text-align: right;">
+(EQ11)
+</div>
 
 EQ4とEQ11を使ってEQ12を得る.
 
 $$
-\tan (\varepsilon \sin \gamma_b) =  \sin \gamma_b \tan \phi \tag{EQ12}
+\tan (\varepsilon \sin \gamma_b) =  \sin \gamma_b \tan \phi
 $$
+<div style="text-align: right;">
+(EQ12)
+</div>
 
 EQ11をEQ5に代入してEQ13を得る. 
 
 $$
-\theta = \frac{\arctan (\sin \gamma_b \tan \phi)}{\sin \gamma_b} - \phi  \tag{EQ13}
+\theta = \frac{\arctan (\sin \gamma_b \tan \phi)}{\sin \gamma_b} - \phi 
 $$
+<div style="text-align: right;">
+(EQ13)
+</div>
 
 EQ13はEQ5同様に球面インボリュート関数を表す. 
 
@@ -119,14 +153,20 @@ EQ13はEQ5同様に球面インボリュート関数を表す.
 EQ6,9を用いてEQ17を得る. 
 
 $$
-\tan \varphi = \frac{\sin \varphi}{\cos \varphi} = \frac{\sin \gamma \sin \phi \cos \gamma_b}{\cos \gamma} =  \tan \gamma \sin \phi \cos \gamma_b \tag{EQ17}
+\tan \varphi = \frac{\sin \varphi}{\cos \varphi} = \frac{\sin \gamma \sin \phi \cos \gamma_b}{\cos \gamma} =  \tan \gamma \sin \phi \cos \gamma_b 
 $$
+<div style="text-align: right;">
+(EQ17)
+</div>
 
 EQ4とEQ17から以下を得る
 
 $$
-\tan \gamma = \frac{\tan [(\theta+\phi) \sin \gamma_b]}{\sin \phi \cos \gamma_b} \tag{EQ18}
+\tan \gamma = \frac{\tan [(\theta+\phi) \sin \gamma_b]}{\sin \phi \cos \gamma_b}
 $$
+<div style="text-align: right;">
+(EQ18)
+</div>
 
 図からS1座標系での点Pの座標は以下となる.
 
@@ -137,8 +177,11 @@ r_1^{P} =
 r_0 \sin \gamma\\
 r_0 \cos \gamma\\
 1
-\end{bmatrix} \tag{EQ19}
+\end{bmatrix} 
 $$
+<div style="text-align: right;">
+(EQ19)
+</div>
 
 S0上での点Pの座表はS1をθ回転させるのでEQ20で求まる.
 
@@ -159,8 +202,11 @@ r_0 \cos \gamma\\
 r_0 \sin \gamma \cos \theta\\
 r_0 \cos \gamma\\
 1
-\end{bmatrix} \tag{EQ20}
+\end{bmatrix} 
 $$
+<div style="text-align: right;">
+(EQ20)
+</div>
 
 最終的に上記のPはγbとφから求めることができる.
 
@@ -173,8 +219,11 @@ r_0 \sin \gamma \sin \theta \\
 r_0 \sin \gamma \cos \theta\\
 r_0 \cos \gamma\\
 1
-\end{bmatrix} \tag{EQ21}
+\end{bmatrix}
 $$
+<div style="text-align: right;">
+(EQ21)
+</div>
 
 ## 間接法による定義
 
@@ -191,8 +240,11 @@ r_1^{P} =
 0\\
 r_0\\
 1
-\end{bmatrix} \tag{EQ22}
+\end{bmatrix}
 $$
+<div style="text-align: right;">
+(EQ22)
+</div>
 
 ここで座標変換行列を考えることによりS3座標系での点Pの座標はEQ26で与えられる.
 ここでM10, M21, M32はEQ23~25の座標変換行列である.
@@ -203,8 +255,11 @@ M_{10}(\varphi) = RotationCCW (y_0, \varphi) = \begin{bmatrix}
 0 & 1 & 0 & 0\\
 -\sin \varphi & 0 & \cos \varphi & 0\\
 0 & 0 & 0 & 1
-\end{bmatrix} \tag{EQ23}
+\end{bmatrix}
 $$
+<div style="text-align: right;">
+(EQ23)
+</div>
 
 $$
 M_{21}(\gamma_b) = RotationCCW (x_1, \gamma_b) = \begin{bmatrix}
@@ -212,8 +267,11 @@ M_{21}(\gamma_b) = RotationCCW (x_1, \gamma_b) = \begin{bmatrix}
 0 & \cos \gamma_b & \sin \gamma_b & 0\\
 0 & -\sin \gamma_b & \cos \gamma_b & 0\\
 0 & 0 & 0 & 1
-\end{bmatrix} \tag{EQ24}
+\end{bmatrix} 
 $$
+<div style="text-align: right;">
+(EQ24)
+</div>
 
 $$
 M_{32}(\varepsilon) = RotationCW (z_2, \varepsilon) = \begin{bmatrix}
@@ -221,8 +279,11 @@ M_{32}(\varepsilon) = RotationCW (z_2, \varepsilon) = \begin{bmatrix}
 -\sin \varepsilon & \cos \varepsilon & 0 & 0\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{bmatrix} \tag{EQ25}
+\end{bmatrix} 
 $$
+<div style="text-align: right;">
+(EQ25)
+</div>
 
 $$
 r_3^{P} (\varepsilon, \varphi) =  
@@ -232,8 +293,11 @@ r_0 (\cos \varepsilon \sin \varphi - \sin \varepsilon \cos \varphi  \sin \gamma_
 r_0 (\sin \varepsilon \sin \varphi + \cos \varepsilon \cos \varphi  \sin \gamma_b)\\
 r_0 (\cos \varphi \cos \gamma_b)\\
 1
-\end{bmatrix} \tag{EQ26}
+\end{bmatrix}
 $$
+<div style="text-align: right;">
+(EQ26)
+</div>
 
 ### 法線ベクトルの定義
 間接法のメリットは法線ベクトルと正接ベクトルが簡単に導出できることである。
@@ -247,8 +311,11 @@ n_0^{P} =
 1\\
 0\\
 0\\
-\end{bmatrix} \tag{EQ28}
+\end{bmatrix} 
 $$
+<div style="text-align: right;">
+(EQ28)
+</div>
 
 $$
 t_0^{P} =  
@@ -256,21 +323,30 @@ t_0^{P} =
 0\\
 1\\
 0\\
-\end{bmatrix} \tag{EQ29}
+\end{bmatrix} 
 $$
+<div style="text-align: right;">
+(EQ29)
+</div>
 
 よってEQ26同様に座標変換によってS3座標系での法線ベクトルと正接ベクトルがEQ30, 31で求められる.
 ここでL10, L21, L32は行列Mを3x3行列にしたもの(4行列目を無視した物である)。
 
 $$
 n_3^{P} (\varepsilon, \varphi) =  
-L_{32}(z_2,\varepsilon) L_{21}(x_1, \gamma_b) L_{10}(y_0, \varphi) n_0^{P} \tag{EQ30}
+L_{32}(z_2,\varepsilon) L_{21}(x_1, \gamma_b) L_{10}(y_0, \varphi) n_0^{P}
 $$
+<div style="text-align: right;">
+(EQ30)
+</div>
 
 $$
 t_3^{P} (\varepsilon, \varphi) =  
-L_{32}(z_2,\varepsilon) L_{21}(x_1, \gamma_b) L_{10}(y_0, \varphi) t_0^{P} \tag{EQ31}
+L_{32}(z_2,\varepsilon) L_{21}(x_1, \gamma_b) L_{10}(y_0, \varphi) t_0^{P}
 $$
+<div style="text-align: right;">
+(EQ31)
+</div>
 
 ## 球面インボリュート歯面の定義
 ### 歯厚の定義 (Gear Tooth Thickness) 
@@ -278,8 +354,11 @@ $$
 バックラッシュが必要な場合は適度に補正する.
 
 $$
-t_p = \frac{\pi}{N} \tag{EQ32}
+t_p = \frac{\pi}{N} 
 $$
+<div style="text-align: right;">
+(EQ32)
+</div>
 
 <img src="図_球面インボリュート\004_gear_thickness.jpg" width="300">
 
@@ -291,8 +370,11 @@ M_{43} = RotationCCW (z_3, \xi_p) = \begin{bmatrix}
 -\sin \xi_p & \cos \xi_p & 0 & 0\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{bmatrix} \tag{EQ33}
+\end{bmatrix}
 $$
+<div style="text-align: right;">
+(EQ33)
+</div>
 
 $$
 M_{43} = RotationCW (z_3, \xi_p) = \begin{bmatrix}
@@ -300,15 +382,21 @@ M_{43} = RotationCW (z_3, \xi_p) = \begin{bmatrix}
 \sin \xi_p & \cos \xi_p & 0 & 0\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{bmatrix} \tag{EQ34}
+\end{bmatrix}
 $$
+<div style="text-align: right;">
+(EQ34)
+</div>
 
 ここでξは図よりEQ33-2で与えられる.
 θpはPがピッチ円上に来た時のθである. (極角度, polar angle)
 
 $$
-\xi_p = (t_p/2) + \theta_p \tag{EQ33-2}
+\xi_p = (t_p/2) + \theta_p
 $$
+<div style="text-align: right;">
+(EQ33-2)
+</div>
 
 ### 極角度とピッチコーンの定義 (the Polar Angle at the Pitch Cone)
 θpはEQ13から決めることができる. (θはγbとΦの関数)
@@ -317,20 +405,29 @@ Pがピッチ円上にある時にΦは圧力角となる
 Pがピッチ円状にある時のγとΦをγpとΦpとすると, EQ11, 17からEQ37が得られえる.
 
 $$
-\sin \gamma_b \tan \phi_p = \tan \gamma_p \sin \phi_p \cos \gamma_b \tag{EQ37}
+\sin \gamma_b \tan \phi_p = \tan \gamma_p \sin \phi_p \cos \gamma_b
 $$
+<div style="text-align: right;">
+(EQ37)
+</div>
 
 EQ37を式変形してEQ40を得る. 
 
 $$
-\cos \phi_p = \frac{\tan \gamma_b}{ \tan \gamma_p } \tag{EQ40}
+\cos \phi_p = \frac{\tan \gamma_b}{ \tan \gamma_p }
 $$
+<div style="text-align: right;">
+(EQ40)
+</div>
 
 これによりθpがEQ13からEQ41で求まる.
 
 $$
-\theta_p = \frac{\arctan (\sin \gamma_b \tan \phi_p)}{\sin \gamma_b} - \phi_p  \tag{EQ41}
+\theta_p = \frac{\arctan (\sin \gamma_b \tan \phi_p)}{\sin \gamma_b} - \phi_p 
 $$
+<div style="text-align: right;">
+(EQ41)
+</div>
 
 <img src="図_球面インボリュート\005_pitch_cone.jpg" width="700">
 
@@ -338,15 +435,21 @@ $$
 図のO1MP0に着目して球面三角法の正弦定理よりEQ42を得る.
 
 $$
-\frac{\gamma_b}{\sin (90 \degree - \alpha)} =  \frac{\sin \gamma_p}{\sin 90 \degree} \tag{EQ42}
+\frac{\gamma_b}{\sin (90 \degree - \alpha)} =  \frac{\sin \gamma_p}{\sin 90 \degree} 
 $$
+<div style="text-align: right;">
+(EQ42)
+</div>
 
 よってEQ42からEQ43が得られる。
 これでピッチ円すい角から基礎円すい角が求められる. αは圧力角である.
 
 $$
-\gamma_b = \arcsin (\cos \alpha \sin \gamma_p) \tag{EQ43}
+\gamma_b = \arcsin (\cos \alpha \sin \gamma_p) 
 $$
+<div style="text-align: right;">
+(EQ43)
+</div>
 
 ### 球面インボリュートベベルギアの歯面の定義
 以下の図は外部基準球上に描かれた球面インボリュートプロファイルから生成された歯車歯面を示す。
@@ -363,22 +466,31 @@ r_0^{P} = \begin{bmatrix}
 \rho_0 \sin \gamma \cos \theta\\
 \rho_0 \cos \gamma\\
 1
-\end{bmatrix} \tag{EQ44}
+\end{bmatrix} 
 $$
+<div style="text-align: right;">
+(EQ44)
+</div>
 
 ρの範囲はAo(ギア外径)からAi(ギア内径)である.
 A0は以下図よりEQ45で求まる.
 mはモジュール, Nは歯数, γpはピッチ角。
 
 $$
-A_o = \frac{r_p}{\sin \gamma_p} = \frac{mN}{2 \sin \gamma_p} \tag{EQ45}
+A_o = \frac{r_p}{\sin \gamma_p} = \frac{mN}{2 \sin \gamma_p}
 $$
+<div style="text-align: right;">
+(EQ45)
+</div>
 
 Aiは歯厚FwからEQ46で求まる. (Fwはおおよそ1/3A0程度になることが多い)
 
 $$
-A_i = A_o - F_w \tag{EQ46}
+A_i = A_o - F_w 
 $$
+<div style="text-align: right;">
+(EQ46)
+</div>
 
 <img src="図_球面インボリュート\007_addendum.jpg" width="400">
 
@@ -387,12 +499,18 @@ $$
 アデンダム係数はKa, デデンダム係数はKdである.
 
 $$
-\gamma_f = \gamma_p + \arctan(\frac{k_a m}{A_o}) = \gamma_p + \arctan(\frac{2 k_a \sin \gamma_p}{N}) \tag{EQ47}
+\gamma_f = \gamma_p + \arctan(\frac{k_a m}{A_o}) = \gamma_p + \arctan(\frac{2 k_a \sin \gamma_p}{N})
 $$
+<div style="text-align: right;">
+(EQ47)
+</div>
 
 $$
-\gamma_r = \gamma_p - \arctan(\frac{k_d m}{A_o}) = \gamma_p - \arctan(\frac{2 k_d \sin \gamma_p}{N}) \tag{EQ48}
+\gamma_r = \gamma_p - \arctan(\frac{k_d m}{A_o}) = \gamma_p - \arctan(\frac{2 k_d \sin \gamma_p}{N})
 $$
+<div style="text-align: right;">
+(EQ48)
+</div>
 
 ## ベベルギアの諸元
 * ピニオン/ギア
