@@ -1,4 +1,4 @@
-# 球面インボリュートのモデリング検討
+# 球面インボリュートベベルギアのモデリング方法
 
 ## 参考URL
  * <a id="ref2"></a>Computerized Design of Straight Bevel Gears with Optimized Profiles for Forging, Molding, or 3D Printing [URL](https://thermalprocessing.com/computerized-design-of-straight-bevel-gears-with-optimized-profiles-for-forging-molding-or-3d-printing/)
@@ -19,8 +19,8 @@
 上記の図から以下の関係式が成り立つ.
 
 $$
-\tan \phi = \frac{\overline{MP}}{\overline{OM}} = \frac{\widehat{MQ}}{r_b} = \frac{r_b(\phi+\theta)}{r_b} \tag{EQ1}
-$$
+\tan \phi = \frac{\overline{MP}}{\overline{OM}} = \frac{\widehat{MQ}}{r_b} = \frac{r_b(\phi+\theta)}{r_b} 
+\tag{EQ1}$$
 
 EQ1を式変形して以下が求まる.
 
