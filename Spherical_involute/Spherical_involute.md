@@ -512,10 +512,272 @@ $$
 (EQ48)
 </div>
 
-## ベベルギアの諸元
+## 球面インボリュートの歯面の計算
+ここまでで理論が理解できたためpythonでは歯面を計算するコードを書いてみる。
+半径ごとにZ軸方向に少しずつ回転させればスパイラルベベルギアにもできる
+Autodesk Fusion APIを使って3Dモデルにするコードも書いたのであとはフォルダを参照
+
 * ピニオン/ギア
-  * 歯数: 16 / 40
-  * 歯幅: 185mm / 185mm
-  * ピッチ円直径: 540mm / 1350mm
+  * 歯数: 11 / 23
+  * 歯幅: 25mm / 25mm
+  * 歯直角モジュール: 5
   * スパイラル角: 32°
   * 圧力角: 20°
+  * スパイラル円弧径: 300mm
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+#from mpl_toolkits.mplot3d import Axes3D
+#from scipy.interpolate import CubicSpline
+import matplotlib.tri as tri
+from pyscript import display
+
+model = "pinion" # "gear" or "pinion"
+N_p = 23 # num of tooth pinion
+N_g = 11 # num of tooth gear
+module = 5 # ギアミルで確認 歯直角モジュール
+Fw = 25 # mm /Face width
+Sigma = 90 # deg / shaft angle
+alpha = 20 # deg / pressure angle
+ka = 1.0 # addendam coefficient
+kd = 1.25 # dedendam coefficient
+beta = 32 # deg / spral angle
+rc = 300 # mm / cutter radius
+
+i = N_g / N_p # Reduction ratio
+rp_g = np.degrees(np.arctan2(np.sin(np.radians(Sigma)), 1/i + np.cos(np.radians(Sigma)))) # deg / pitch angle of gear
+rp_p = Sigma - rp_g # deg / pitch angle of pinion
+
+#EQ45, EQ46
+Ao = (module * N_g) / (2 * np.sin(np.radians(rp_g)))
+Ai = Ao - Fw
+Am = (Ao + Ai)/2
+
+#EQ47, EQ48, EQ43
+#gamma_f = rp_g + np.degrees(np.arctan(2 * ka * np.sin(np.radians(rp_g))/N_g))
+gamma_f = rp_g + np.degrees(np.arctan(ka * module / Ao))
+#gamma_r = rp_g - np.degrees(np.arctan(2 * kd * np.sin(np.radians(rp_g))/N_g))
+gamma_r = rp_g - np.degrees(np.arctan(kd * module / Ao))
+gamma_b = np.degrees(np.arcsin(np.cos(np.radians(alpha)) * np.sin(np.radians(rp_g))))
+
+#EQ32, EQ41, EQ33-2
+t_p = np.degrees(np.pi) / N_g # deg ピッチ円上の歯厚角度
+cos_phi_p = np.tan(np.radians(gamma_b)) / np.tan(np.radians(rp_g))
+phi_p = np.degrees(np.arccos(cos_phi_p))
+theta_p = np.degrees(np.arctan(np.sin(np.radians(gamma_b)) * np.tan(np.radians(phi_p)))) / (np.sin(np.radians(gamma_b))) - phi_p # deg ピッチ円上のθ
+xi_p = (t_p/2) + theta_p # deg 歯の中心とのずれ角度
+
+# スパイラル部分のための計算
+rcl = np.sqrt(Am*Am + rc*rc - 2* Am * rc * np.cos(np.radians(90.0 - beta))) # カッター位置 (余弦定理) 
+cos_d0 = (Am*Am + rcl*rcl - rc*rc) / (2 * Am * rcl) # Amでの角度d (余弦定理) 
+d0 = np.degrees(np.arccos(cos_d0))
+
+print("rp_g", rp_g)
+print("Ao", Ao)
+print("Ai", Ai)
+print("gamma_f", gamma_f)
+print("gamma_r", gamma_r)
+print("gamma_b", gamma_b)
+print("t_p", t_p)
+print("theta_p", theta_p)
+print("xi_p", xi_p)
+print("rcl", rcl)
+print("d0", d0)
+
+# 変数類の用意
+rho_gear_surface = np.linspace(Ai, Ao, 20) # mm
+rho_root_surface = np.linspace(Ai, Ao, 20) # mm
+
+if gamma_b > gamma_r: # 基礎円が歯元より低い場合 (ピニオン等)
+  gamma_gear_surface = np.linspace(gamma_b, gamma_f, 20) # deg
+  gamma_root_surface = np.linspace(gamma_r, gamma_b, 20) # deg
+else:
+  gamma_gear_surface = np.linspace(gamma_r, gamma_f, 20) # deg
+  gamma_root_surface = np.linspace(gamma_b, gamma_r, 20) # deg
+
+gear_surface_right = np.zeros((20, 20, 3))
+gear_surface_left = np.zeros((20, 20, 3))
+root_surface_right = np.zeros((20, 20, 3))
+root_surface_left = np.zeros((20, 20, 3))
+
+# 歯面計算
+for index_gamma, gamma_n in enumerate(gamma_gear_surface):
+    for index_rho, rho_n in enumerate(rho_gear_surface):
+
+        #decide varphi EQ16
+        cos_varphi = np.cos(np.radians(gamma_n)) / np.cos(np.radians(gamma_b))
+        varphi = np.degrees(np.arccos(cos_varphi))
+
+        #decide phi EQ11
+        tan_phi = np.tan(np.radians(varphi)) / np.sin(np.radians(gamma_b))
+        phi = np.degrees(np.arctan2(tan_phi,1))
+
+        #decide theta EQ13
+        theta = (np.degrees(np.arctan(np.sin(np.radians(gamma_b)) * np.tan(np.radians(phi)))) / (np.sin(np.radians(gamma_b)))) - phi
+
+        #calicurate spherical involute: right surface EQ20
+        X_right = np.array([
+            -1 * rho_n * np.sin(np.radians(gamma_n)) * np.sin(np.radians(theta)),
+            +1 * rho_n * np.sin(np.radians(gamma_n)) * np.cos(np.radians(theta)),
+            rho_n * np.cos(np.radians(gamma_n))
+        ])
+
+        #calicurate spherical involute: left surface EQ21
+        X_left = np.array([
+            +1 * rho_n * np.sin(np.radians(gamma_n)) * np.sin(np.radians(theta)),
+            +1 * rho_n * np.sin(np.radians(gamma_n)) * np.cos(np.radians(theta)),
+            rho_n * np.cos(np.radians(gamma_n))
+        ])
+
+        #calicurate rotation matrix: right side EQ33
+        RotationCCW_M43 = np.array([
+            [+1 * np.cos(np.radians(xi_p)),np.sin(np.radians(xi_p)),0],
+            [-1 * np.sin(np.radians(xi_p)),np.cos(np.radians(xi_p)),0],
+            [0,0,1]
+        ])
+
+        #calicurate rotation matrix: left side EQ34
+        RotationCW_M43 = np.array([
+            [np.cos(np.radians(xi_p)),-1 * np.sin(np.radians(xi_p)),0],
+            [np.sin(np.radians(xi_p)),+1 * np.cos(np.radians(xi_p)),0],
+            [0,0,1]
+        ])
+
+        #gear surface calicurarion
+        gear_surface_right[index_gamma][index_rho] = np.matmul(RotationCCW_M43,X_right)
+        gear_surface_left[index_gamma][index_rho] = np.matmul(RotationCW_M43,X_left)
+
+        #spiral部分の回転計算
+        cos_d = (rho_n*rho_n + rcl*rcl - rc*rc) / (2 * rho_n * rcl) # rho_nでの角度d (余弦定理) 
+        d = np.degrees(np.arccos(cos_d))
+        if model == "pinion":
+            d = d * N_p / N_g
+
+        #calicurate rotation matrix: d
+        RotationCW_M43 = np.array([
+            [np.cos(np.radians(d - d0)),-1 * np.sin(np.radians(d - d0)),0],
+            [np.sin(np.radians(d - d0)),+1 * np.cos(np.radians(d - d0)),0],
+            [0,0,1]
+        ])
+        gear_surface_right[index_gamma][index_rho] = np.matmul(RotationCW_M43,gear_surface_right[index_gamma][index_rho])
+        gear_surface_left[index_gamma][index_rho] = np.matmul(RotationCW_M43,gear_surface_left[index_gamma][index_rho])
+
+        #print(gear_surface_right[index_gamma][index_rho][0],",", gear_surface_right[index_gamma][index_rho][1],",", gear_surface_right[index_gamma][index_rho][2])
+        #print(gear_surface_left[index_gamma][index_rho][0],",", gear_surface_left[index_gamma][index_rho][1],",", gear_surface_left[index_gamma][index_rho][2])
+
+# 歯元面計算
+if gamma_b > gamma_r:
+    for index_gamma, gamma_n in enumerate(gamma_root_surface):
+        for index_rho, rho_n in enumerate(rho_root_surface):
+            #root surface right
+            X_right = np.array([
+                0,
+                rho_n * np.sin(np.radians(gamma_n)),
+                rho_n * np.cos(np.radians(gamma_n))
+            ])
+
+            #root surface left
+            X_left = np.array([
+                0,
+                rho_n * np.sin(np.radians(gamma_n)),
+                rho_n * np.cos(np.radians(gamma_n))
+            ])
+
+            #calicurate rotation matrix: right side EQ33
+            RotationCCW_M43 = np.array([
+                [+1 * np.cos(np.radians(xi_p)),np.sin(np.radians(xi_p)),0],
+                [-1 * np.sin(np.radians(xi_p)),np.cos(np.radians(xi_p)),0],
+                [0,0,1]
+            ])
+
+            #calicurate rotation matrix: left side EQ34
+            RotationCW_M43 = np.array([
+                [np.cos(np.radians(xi_p)),-1 * np.sin(np.radians(xi_p)),0],
+                [np.sin(np.radians(xi_p)),+1 * np.cos(np.radians(xi_p)),0],
+                [0,0,1]
+            ])
+
+            root_surface_right[index_gamma][index_rho] = np.matmul(RotationCCW_M43,X_right)
+            root_surface_left[index_gamma][index_rho] = np.matmul(RotationCW_M43,X_left)
+
+            #spiral部分の回転計算
+            cos_d = (rho_n*rho_n + rcl*rcl - rc*rc) / (2 * rho_n * rcl) # rho_nでの角度d (余弦定理)
+            d = np.degrees(np.arccos(cos_d))
+            if model == "pinion":
+                d = d * N_p / N_g
+
+            #calicurate rotation matrix: d
+            RotationCW_M43 = np.array([
+                [np.cos(np.radians(d - d0)),-1 * np.sin(np.radians(d - d0)),0],
+                [np.sin(np.radians(d - d0)),+1 * np.cos(np.radians(d - d0)),0],
+                [0,0,1]
+            ])
+
+            root_surface_right[index_gamma][index_rho] = np.matmul(RotationCW_M43,root_surface_right[index_gamma][index_rho])
+            root_surface_left[index_gamma][index_rho] = np.matmul(RotationCW_M43,root_surface_left[index_gamma][index_rho])
+
+            #print(root_surface_right[index_gamma][index_rho][0],",", root_surface_right[index_gamma][index_rho][1],",", root_surface_right[index_gamma][index_rho][2])
+            #print(root_surface_left[index_gamma][index_rho][0],",", root_surface_left[index_gamma][index_rho][1],",", root_surface_left[index_gamma][index_rho][2])
+
+# visualization of gear surface
+def get_point_cloud():
+    point_cloud = []
+    for index_gamma, gamma_n in enumerate(gamma_gear_surface):
+        for index_rho, rho_n in enumerate(rho_gear_surface):
+            point_cloud.append([gear_surface_right[index_gamma][index_rho][0], gear_surface_right[index_gamma][index_rho][1], gear_surface_right[index_gamma][index_rho][2]])
+            point_cloud.append([gear_surface_left[index_gamma][index_rho][0], gear_surface_left[index_gamma][index_rho][1], gear_surface_left[index_gamma][index_rho][2]])
+
+    for index_gamma, gamma_n in enumerate(gamma_root_surface):
+        for index_rho, rho_n in enumerate(rho_root_surface):
+            point_cloud.append([root_surface_right[index_gamma][index_rho][0], root_surface_right[index_gamma][index_rho][1], root_surface_right[index_gamma][index_rho][2]])
+            point_cloud.append([root_surface_left[index_gamma][index_rho][0], root_surface_left[index_gamma][index_rho][1], root_surface_left[index_gamma][index_rho][2]])
+
+    # 残りの歯面も描画
+    for index_gamma, gamma_n in enumerate(gamma_gear_surface):
+        for index_rho, rho_n in enumerate(rho_gear_surface):
+            for i in range(1, N_g, 1):
+                RotationCCW_M43 = np.array([
+                    [+1 * np.cos(np.radians(t_p*2)),np.sin(np.radians(t_p*2)),0],
+                    [-1 * np.sin(np.radians(t_p*2)),np.cos(np.radians(t_p*2)),0],
+                    [0,0,1]
+                ])
+                gear_surface_right[index_gamma][index_rho] = np.matmul(RotationCCW_M43,gear_surface_right[index_gamma][index_rho])
+                gear_surface_left[index_gamma][index_rho] = np.matmul(RotationCCW_M43,gear_surface_left[index_gamma][index_rho])
+                root_surface_right[index_gamma][index_rho] = np.matmul(RotationCCW_M43,root_surface_right[index_gamma][index_rho])
+                root_surface_left[index_gamma][index_rho] = np.matmul(RotationCCW_M43,root_surface_left[index_gamma][index_rho])
+                point_cloud.append([gear_surface_right[index_gamma][index_rho][0], gear_surface_right[index_gamma][index_rho][1], gear_surface_right[index_gamma][index_rho][2]])
+                point_cloud.append([gear_surface_left[index_gamma][index_rho][0], gear_surface_left[index_gamma][index_rho][1], gear_surface_left[index_gamma][index_rho][2]])
+                point_cloud.append([root_surface_right[index_gamma][index_rho][0], root_surface_right[index_gamma][index_rho][1], root_surface_right[index_gamma][index_rho][2]])
+                point_cloud.append([root_surface_left[index_gamma][index_rho][0], root_surface_left[index_gamma][index_rho][1], root_surface_left[index_gamma][index_rho][2]])
+    return np.array(point_cloud)
+
+test_data = get_point_cloud()
+fig = plt.figure(figsize = (8, 8))
+ax= fig.add_subplot(111, projection='3d')
+ax.scatter(test_data[:,0],test_data[:,1],test_data[:,2], s = 1, c = "blue")
+ax.view_init(elev=40, azim=90) #グラフの画角調整
+        
+# 参考用の球の作成(半径Ao)
+phi = np.linspace(0, np.pi, 100)   # 仰角 (0からπ)
+theta = np.linspace(0, 2 * np.pi, 100)  # 方位角 (0から2π)
+phi, theta = np.meshgrid(phi, theta)# メッシュグリッドを生成
+## 球の座標を計算
+x = Ao * np.sin(phi) * np.cos(theta)
+y = Ao * np.sin(phi) * np.sin(theta)
+z = Ao * np.cos(phi)
+ax.plot_surface(x, y, z, color='b', alpha=0.3)  # alpha=0.3で半透明
+
+#参考用の円を作成(rpの位置)
+r = Ao * np.sin(np.radians(rp_g))  # 半径
+t = np.linspace(0, 2 * np.pi, 100)  # tは0から2πまで
+t2 =  np.linspace(1, 1, 100)
+## XY平面での円 (z = 0)
+x = r * np.cos(t)
+y = r * np.sin(t)
+z = Ao * np.cos(np.radians(rp_g)) * t2  # z座標は0で固定
+ax.plot(x, y, z, color='r')# 円をプロット
+
+#plt.show()
+display(fig, target="mpl")
+```
